@@ -2,6 +2,7 @@ package org.zjh.project
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
@@ -39,7 +40,12 @@ class Viewer {
     }
 
     private var count = 0
-
+    fun saveUriToString(context: Context, key: String, uri: Uri) {
+        val sharedPreferences: SharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString(key, uri.toString())
+        editor.apply()
+    }
     private fun getBitmapFromUriAndSetBitmap(uri: Uri): Unit {
         Timber.d("Debug message pl ${this.pl}")
         Timber.d("Debug message context. ${this.context}")
@@ -61,10 +67,9 @@ class Viewer {
             this.pl?.panorama = panorama
 
         } else {
-            val panorama = PLSphericalPanorama()
-            Timber.d("Debug message 第one次 ${panorama.texturesLength()}");
-            Timber.d("Debug message 第one次");
+
             this.pl!!.onCreate()
+            val panorama = PLSphericalPanorama()
             panorama.camera.lookAt(30.0f, 90.0f)
             val plImage = PLImage(scaledBitmap, false)
             panorama.setImage(plImage)
@@ -161,6 +166,7 @@ class Viewer {
         selectedImageUri?.let { uri ->
             // 使用Coil或其他图片加载库来显示选中的图片
             println(uri)
+            saveUriToString(context!!, uri.toString(), uri)
             Timber.tag("imageUrl").d("OpenAlbumAndDisplayImage:$uri ")
             getBitmapFromUriAndSetBitmap(uri)
         }

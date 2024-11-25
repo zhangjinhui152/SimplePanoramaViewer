@@ -28,6 +28,7 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
+//            implementation(libs.androidx.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
@@ -36,6 +37,7 @@ kotlin {
             implementation(libs.panoramagl)
             implementation(compose.components.resources)
             implementation(libs.accompanist.permissions)
+            implementation(libs.coil.compose)
         }
     }
 }
@@ -68,6 +70,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.material3.android)
     debugImplementation(compose.uiTooling)
 }
 
