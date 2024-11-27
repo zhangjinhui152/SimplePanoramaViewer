@@ -1,10 +1,8 @@
 package org.zjh.project
 
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
-import android.Manifest.permission.READ_MEDIA_IMAGES
-import android.Manifest.permission.READ_SMS
-import android.Manifest.permission_group.READ_MEDIA_AURAL
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -12,52 +10,58 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.Divider
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.zjh.project.ui.theme.backgroundLight
+import org.zjh.project.ui.themeRed.lightSchemeRed
 import timber.log.Timber
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScaffoldHome(navController: NavHostController) {
 
@@ -68,11 +72,11 @@ fun ScaffoldHome(navController: NavHostController) {
         topBar = {
             TopAppBar(
                 title = { Text("全景查看器") },
-                backgroundColor = MaterialTheme.colorScheme.background
-            )
+
+                )
         },
         bottomBar = {
-            NavigationBar ( ){
+            NavigationBar() {
 
                 items.forEachIndexed { index, item ->
                     NavigationBarItem(
@@ -129,9 +133,12 @@ fun ScaffoldHome(navController: NavHostController) {
 @Composable
 fun Viewer360(navController: NavHostController) {
     val viewer = Viewer()
+    val context = LocalContext.current
+    // 初始化时加载数据
 
 
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+
         viewer.OpenAlbumAndDisplayImage()
         viewer.CustomView()
     }
@@ -152,7 +159,8 @@ fun History(navController: NavHostController) {
 //            Toast.makeText(context, "权限已授予", Toast.LENGTH_SHORT).show()
         } else {
             if (shouldShowRequestPermissionRationale.value) {
-                Toast.makeText(context, "请在设置中授予读取外部存储的权限", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "请在设置中授予读取外部存储的权限", Toast.LENGTH_SHORT)
+                    .show()
             } else {
                 Toast.makeText(context, "权限被拒绝", Toast.LENGTH_SHORT).show()
             }
@@ -187,12 +195,17 @@ fun History(navController: NavHostController) {
                     .padding(8.dp)
                     .height(200.dp)
                     .clickable {
-                        navController.navigate("home?uri=$uri")
+                        val sharedPreferences: SharedPreferences =
+                            context.getSharedPreferences("tempUri", Context.MODE_PRIVATE)
+                        val editor = sharedPreferences.edit()
+                        editor.putString("uri", uri)
+                        editor.apply()
+                        navController.navigate("home")
                     },
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Image(
-                     painter = rememberAsyncImagePainter(imageUri),
+                    painter = rememberAsyncImagePainter(imageUri),
                     contentDescription = uri,
                     contentScale = ContentScale.Crop // 设置图片缩放类型为裁剪以填满空间
                 )
@@ -200,7 +213,11 @@ fun History(navController: NavHostController) {
         }
         item {
             Button(
-                onClick = { context.deleteSharedPreferences("MyPrefs") },
+                onClick = {
+                    context.deleteSharedPreferences("MyPrefs")
+                    navController.navigate("home")
+                    Toast.makeText(context, "清除成功😛", Toast.LENGTH_SHORT).show()
+                },
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(text = "清除列表")
@@ -210,9 +227,58 @@ fun History(navController: NavHostController) {
 }
 
 @Composable
-fun Setting() {
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Setting")
+fun Setting(
+
+) {
+    var isChecked by remember { mutableStateOf(false) }
+    Column {
+        ListItem(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { /* 这里可以添加点击设置项的处理逻辑 */ },
+            leadingContent = {
+                Icon(
+                    Icons.Filled.Settings,
+                    contentDescription = "基础设置"
+                )
+
+            },
+            headlineContent = {
+                Text(
+                    text = "title",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+        )
+        ListItem(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { /* 这里可以添加点击设置项的处理逻辑 */ },
+            leadingContent = {
+                Box(
+                    modifier = Modifier.size(24.dp)
+                )
+            },
+            headlineContent = {
+                Text(
+                    text = "夜间模式",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+            supportingContent = {
+                Text(
+                    text = "dark🎆",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+            trailingContent = {
+                Switch(
+                    checked = isChecked,
+                    onCheckedChange = { isChecked = it }
+                )
+            }
+        )
+        Divider()
     }
 }
 
@@ -220,10 +286,13 @@ fun Setting() {
 @Composable
 @Preview
 fun App() {
-
+//    var LocalString = compositionLocalOf {mutableStateOf(lightSchemeRed) }
     val navController = rememberNavController()
+
+
     Timber.plant(Timber.DebugTree())
-    MaterialTheme(colorScheme =  org.zjh.project.ui.theme.lightScheme) {
+
+    MaterialTheme(colorScheme = lightSchemeRed) {
         ScaffoldHome(navController)
     }
 }

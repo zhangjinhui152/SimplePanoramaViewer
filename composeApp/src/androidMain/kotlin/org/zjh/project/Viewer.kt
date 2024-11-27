@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,22 +44,17 @@ class Viewer {
 
     private var count = 0
     fun saveUriToString(context: Context, key: String, uri: Uri) {
-        val sharedPreferences: SharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val sharedPreferences: SharedPreferences =
+            context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-
-       try {
-           context.contentResolver.takePersistableUriPermission(uri, flags)
-
-       }
-       catch (e:Exception){
-           Toast.makeText(context, "我只能告诉你，现在我解决不了权限问题 = =", Toast.LENGTH_SHORT).show()
-
-       }
+        context.contentResolver.takePersistableUriPermission(uri, flags)
+        Toast.makeText(context, "已加入持久化😠", Toast.LENGTH_SHORT).show()
         editor.putString(key, uri.toString())
         editor.apply()
 
     }
+
     private fun getBitmapFromUriAndSetBitmap(uri: Uri): Unit {
         Timber.d("Debug message pl ${this.pl}")
         Timber.d("Debug message context. ${this.context}")
@@ -136,14 +133,26 @@ class Viewer {
         }
 
 
-
     }
 
     @SuppressLint("SetTextI18n")
     @Composable
     fun CustomView() {
         lateinit var plManager: PLManager
+        LaunchedEffect(Unit) {
+            Timber.d("Debug tempUri !!!!!!!!!")
+            val sharedPref = context!!.getSharedPreferences("tempUri", Context.MODE_PRIVATE)
 
+            Timber.d("Debug tempUri $sharedPref")
+            val tempUri = sharedPref.getString("uri", null)  // 获取存储的 URI
+            // 执行下一步操作
+            Timber.d("Debug tempUri $tempUri")
+            tempUri?.let {
+                getBitmapFromUriAndSetBitmap(Uri.parse(it))
+                context!!.deleteSharedPreferences("tempUri")
+            }
+            context!!.deleteSharedPreferences("tempUri")
+        }
         //widget.Button
         AndroidView(
             factory = { ctx ->
@@ -165,26 +174,29 @@ class Viewer {
 
     @Composable
     fun OpenAlbumAndDisplayImage() {
-        var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+        var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
         val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.GetContent()
-        ) { uri: Uri? ->
-            selectedImageUri = uri
+            contract = ActivityResultContracts.OpenMultipleDocuments()
+        ) { uris: List<Uri> ->
+            // 处理选择的多个图片 URI
+            if (uris.isNotEmpty()) {
+                selectedImageUris = uris
+                // 这里可以进一步处理，比如显示多张图片等
+            }
         }
-        // 创建一个按钮来触发打开相册操作
-        Button(onClick = { launcher.launch(("image/*")) }) {
-            Text(text = "打开相册")
+
+// 创建一个按钮来触发打开相册操作
+        Button(onClick = { launcher.launch(arrayOf("image/*")) }) {
+            Text(text = "选择图片")
         }
-
-
-//        Text(selectedImageUri.toString())
-        selectedImageUri?.let { uri ->
-            // 使用Coil或其他图片加载库来显示选中的图片
-            println(uri)
-            saveUriToString(context!!, uri.toString(), uri)
-            Timber.tag("imageUrl").d("OpenAlbumAndDisplayImage:$uri ")
-            getBitmapFromUriAndSetBitmap(uri)
-
+        selectedImageUris.let {
+            if (it.isNotEmpty()) {
+                val uri = it[0]
+                println(uri)
+                saveUriToString(context!!, uri.toString(), uri)
+                Timber.tag("imageUrl").d("OpenAlbumAndDisplayImage:$uri ")
+                getBitmapFromUriAndSetBitmap(uri)
+            }
         }
     }
 }
