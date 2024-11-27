@@ -2,19 +2,20 @@ package org.zjh.project
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.AttributeSet
 import android.view.MotionEvent
-import android.view.ViewGroup
 import android.widget.RelativeLayout
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,10 +24,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat.startActivityForResult
 import com.panoramagl.PLImage
 import com.panoramagl.PLManager
 import com.panoramagl.PLSphericalPanorama
-import com.panoramagl.PLTexture
 import timber.log.Timber
 
 
@@ -43,8 +44,19 @@ class Viewer {
     fun saveUriToString(context: Context, key: String, uri: Uri) {
         val sharedPreferences: SharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
+        val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+       try {
+           context.contentResolver.takePersistableUriPermission(uri, flags)
+
+       }
+       catch (e:Exception){
+           Toast.makeText(context, "我只能告诉你，现在我解决不了权限问题 = =", Toast.LENGTH_SHORT).show()
+
+       }
         editor.putString(key, uri.toString())
         editor.apply()
+
     }
     private fun getBitmapFromUriAndSetBitmap(uri: Uri): Unit {
         Timber.d("Debug message pl ${this.pl}")
@@ -118,6 +130,7 @@ class Viewer {
 
         @SuppressLint("ClickableViewAccessibility")
         override fun onTouchEvent(event: MotionEvent): Boolean {
+
             Timber.d("Debug ClickableViewAccessibility ${this.plManager}")
             return this.plManager.onTouchEvent(event)
         }
@@ -159,9 +172,11 @@ class Viewer {
             selectedImageUri = uri
         }
         // 创建一个按钮来触发打开相册操作
-        Button(onClick = { launcher.launch("image/*") }) {
+        Button(onClick = { launcher.launch(("image/*")) }) {
             Text(text = "打开相册")
         }
+
+
 //        Text(selectedImageUri.toString())
         selectedImageUri?.let { uri ->
             // 使用Coil或其他图片加载库来显示选中的图片
@@ -169,6 +184,7 @@ class Viewer {
             saveUriToString(context!!, uri.toString(), uri)
             Timber.tag("imageUrl").d("OpenAlbumAndDisplayImage:$uri ")
             getBitmapFromUriAndSetBitmap(uri)
+
         }
     }
 }
