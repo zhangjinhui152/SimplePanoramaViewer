@@ -19,14 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -37,18 +36,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -59,13 +57,16 @@ import androidx.navigation.compose.rememberNavController
 import coil3.compose.rememberAsyncImagePainter
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.zjh.project.ui.themeRed.lightSchemeRed
+import org.zjh.project.ui.themeRed.mediumContrastDarkColorSchemeRed
 import timber.log.Timber
 
+val LocalColorScheme = compositionLocalOf { mutableStateOf(false) }
+val LocalSettingItem = compositionLocalOf { mutableStateOf(SettingItem()) }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScaffoldHome(navController: NavHostController) {
 
-    var selectedItem by remember { mutableStateOf(0) }
+    var selectedItem by remember { mutableIntStateOf(0) }
     val items = listOf("主页", "我喜欢的", "设置")
     val itemsMap = listOf("home", "history", "setting")
     Scaffold(
@@ -230,7 +231,6 @@ fun History(navController: NavHostController) {
 fun Setting(
 
 ) {
-    var isChecked by remember { mutableStateOf(false) }
     Column {
         ListItem(
             modifier = Modifier
@@ -245,7 +245,7 @@ fun Setting(
             },
             headlineContent = {
                 Text(
-                    text = "title",
+                    text = "基础设置",
                     style = MaterialTheme.typography.bodyLarge
                 )
             },
@@ -262,19 +262,22 @@ fun Setting(
             headlineContent = {
                 Text(
                     text = "夜间模式",
-                    style = MaterialTheme.typography.bodyLarge
+
                 )
             },
             supportingContent = {
                 Text(
-                    text = "dark🎆",
-                    style = MaterialTheme.typography.bodyLarge
+                    text = "darkMode",
+
                 )
             },
             trailingContent = {
+                val colorSchemeState = LocalColorScheme.current
                 Switch(
-                    checked = isChecked,
-                    onCheckedChange = { isChecked = it }
+                    checked = colorSchemeState.value,
+                    onCheckedChange = { colorSchemeState.value = it
+
+                    }
                 )
             }
         )
@@ -286,13 +289,15 @@ fun Setting(
 @Composable
 @Preview
 fun App() {
-//    var LocalString = compositionLocalOf {mutableStateOf(lightSchemeRed) }
-    val navController = rememberNavController()
 
+    val navController = rememberNavController()
+    val colorSchemeState = remember { mutableStateOf(false) }
 
     Timber.plant(Timber.DebugTree())
 
-    MaterialTheme(colorScheme = lightSchemeRed) {
-        ScaffoldHome(navController)
+    CompositionLocalProvider(LocalColorScheme provides colorSchemeState) {
+        MaterialTheme(colorScheme =   if (!colorSchemeState.value) lightSchemeRed else mediumContrastDarkColorSchemeRed) {
+            ScaffoldHome(navController)
+        }
     }
 }
