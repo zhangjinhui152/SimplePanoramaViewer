@@ -270,17 +270,31 @@ fun Setting(
                     text = "darkMode",
 
                 )
-            },
-            trailingContent = {
-                val colorSchemeState = LocalColorScheme.current
-                Switch(
-                    checked = colorSchemeState.value,
-                    onCheckedChange = { colorSchemeState.value = it
+        },
+        trailingContent = trailingContent
+    )
+}
 
-                    }
-                )
-            }
-        )
+@SuppressLint("CommitPrefEdits")
+@Composable
+fun Setting(
+
+) {
+    val context = LocalContext.current
+    Column {
+        SettingListHead(Icons.Filled.Settings, "基础设置")
+        SettingListItem("夜间模式","darkMode"){
+            val colorSchemeState = LocalColorScheme.current
+            Switch(
+                checked = colorSchemeState.value,
+                onCheckedChange = { colorSchemeState.value = it
+
+                }
+            )
+
+
+        }
+
         Divider()
     }
 }
