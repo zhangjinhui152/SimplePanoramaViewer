@@ -1,6 +1,7 @@
 package org.zjh.project
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 
 
 open class SettingItem {
@@ -10,12 +11,12 @@ open class SettingItem {
 
     }
 
-    open var plType: Int = 0
-    open var darkMode: Boolean = false
+    open var plType= mutableStateOf(0)
+    open var darkMode = mutableStateOf(false)
     fun initSetting(context: Context) {
         val sharedPreferences = context.getSharedPreferences("setting", Context.MODE_PRIVATE)
-        plType = sharedPreferences.getInt("plType", 0)
-        darkMode = sharedPreferences.getBoolean("darkMode", false)
+        plType.value = sharedPreferences.getInt("plType", 0)
+        darkMode.value = sharedPreferences.getBoolean("darkMode", false)
     }
 
     fun setItem(context: Context, key: String, value: Any) {
@@ -32,7 +33,5 @@ open class SettingItem {
         editor.apply()
     }
 
-    fun setDark(value: Boolean) {
-        darkMode = value
-    }
+
 }

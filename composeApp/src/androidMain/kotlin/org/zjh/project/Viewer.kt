@@ -18,7 +18,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,9 +25,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat.startActivityForResult
+import com.panoramagl.PLCubicPanorama
+import com.panoramagl.PLCylindricalPanorama
 import com.panoramagl.PLImage
 import com.panoramagl.PLManager
+import com.panoramagl.PLPanoramaBase
 import com.panoramagl.PLSphericalPanorama
 import timber.log.Timber
 
@@ -58,33 +59,63 @@ class Viewer {
     private fun getBitmapFromUriAndSetBitmap(uri: Uri): Unit {
         Timber.d("Debug message pl ${this.pl}")
         Timber.d("Debug message context. ${this.context}")
+        val type = context?.getSharedPreferences("setting",Context.MODE_PRIVATE)?.getInt(SettingItem.plType,0)
+        val scaledBitmap = getBitmap(uri)
 
 
-        val scaledBitmap = getSbitmap(uri)
         Timber.d("Debug message $scaledBitmap");
-        if (count != 0) {
-            this.pl = null
-            this.pl = PLManager(context!!)
-            Timber.d("this.pl ${this.pl}")
-            this.pl?.setContentView(currentView)
-            currentView.plManager = this.pl!!
-            this.pl!!.onCreate()
-            val panorama = PLSphericalPanorama()
-            panorama.camera.lookAt(30.0f, 90.0f)
-            val plImage = PLImage(scaledBitmap, false)
-            panorama.setImage(plImage)
-            this.pl?.panorama = panorama
 
-        } else {
 
-            this.pl!!.onCreate()
-            val panorama = PLSphericalPanorama()
-            panorama.camera.lookAt(30.0f, 90.0f)
-            val plImage = PLImage(scaledBitmap, false)
-            panorama.setImage(plImage)
-            this.pl?.panorama = panorama
-
+        this.pl = null
+        this.pl = PLManager(context!!)
+        Timber.d("this.pl ${this.pl}")
+        this.pl?.setContentView(currentView)
+        currentView.plManager = this.pl!!
+        this.pl!!.onCreate()
+//        val panorama = PLSphericalPanorama()
+//        panorama.apply {
+//            camera.lookAt(30.0f, 90.0f)
+//            val plImage = PLImage(scaledBitmap, false)
+//            setImage(plImage)
+//        }
+        val panorama: PLPanoramaBase?
+        when(type!!){
+            0 -> {
+                panorama = PLSphericalPanorama()
+                panorama.apply {
+                    camera.lookAt(30.0f, 90.0f)
+                    val plImage = PLImage(scaledBitmap, false)
+                    setImage(plImage)
+                }
+            }
+            1 -> {
+                panorama = PLCylindricalPanorama()
+                panorama.apply {
+                    camera.lookAt(30.0f, 90.0f)
+                    val plImage = PLImage(scaledBitmap, false)
+                    setImage(plImage)
+                }
+            }
+            2 -> {
+                panorama = PLCubicPanorama()
+                panorama.apply {
+                    camera.lookAt(30.0f, 90.0f)
+                    val plImage = PLImage(scaledBitmap, false)
+                    setImage(plImage)
+                }
+            }
+            else ->{
+                panorama = PLSphericalPanorama()
+                panorama.apply {
+                    camera.lookAt(30.0f, 90.0f)
+                    val plImage = PLImage(scaledBitmap, false)
+                    setImage(plImage)
+                }
+            }
         }
+        Timber.d("panorama $panorama")
+        this.pl?.panorama = panorama
+
         Timber.d("Debug message $uri");
         Timber.d("Debug message ${this.pl?.panorama}");
         Timber.d("Debug message isRendererCreated ${this.pl?.isRendererCreated}");
@@ -94,7 +125,7 @@ class Viewer {
 
     }
 
-    private fun getSbitmap(uri: Uri): Bitmap {
+    private fun getBitmap(uri: Uri): Bitmap {
         val originalBitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver, uri)
         // 缩放图片
         // 计算目标尺寸
