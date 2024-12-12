@@ -1,12 +1,13 @@
 # SimplePanoramaViewer
-使用kotlin 的简单全景查看器SimplePanoramaViewer
-使用了https://github.com/hannesa2/panoramaGL 这个库
+- 使用 kotlin 的简单全景查看器SimplePanoramaViewer
+- 使用了https://github.com/hannesa2/panoramaGL 这个库
+- 使用andorid studio 构建
+- 使用 material design3
+- 可用的release apk在composeApp\release\composeApp-release.apk 里面
 
 
 
-
-
-This is a Kotlin Multiplatform project targeting Android.
+#### This is a Kotlin Multiplatform project targeting Android.
 
 * `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
