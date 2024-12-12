@@ -1,0 +1,2 @@
+# SimplePanoramaViewer
+使用kotlin 的简单全景查看器SimplePanoramaViewer
