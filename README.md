@@ -1,6 +1,6 @@
 # SimplePanoramaViewer
 使用kotlin 的简单全景查看器SimplePanoramaViewer
-
+使用了https://github.com/hannesa2/panoramaGL 这个库
 
 
 
