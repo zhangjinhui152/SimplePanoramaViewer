@@ -1,5 +1,11 @@
 # SimplePanoramaViewer
 使用kotlin 的简单全景查看器SimplePanoramaViewer
+
+
+
+
+
+
 This is a Kotlin Multiplatform project targeting Android.
 
 * `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
